@@ -6,23 +6,38 @@
 //
 import SwiftUI
 
-struct GoalItem: Identifiable, Codable{
-    var id = UUID()
-    var title: String
-    var progress: Int = 0
-    
-}
-
 
 
 
 struct GoalsView: View {
+    @StateObject private var goalManager = GoalManager()
+    @State private var showingAddSheet = false
+    
     var body: some View {
-        NavigationView {
-            ScrollView{
-                Text("Search Content")
-                    .navigationTitle("Goals")
+        NavigationStack {
+           
+            List {
+                ForEach(goalManager.goalItems){ goal in
+                    NavigationLink(destination: GoalDetailView(goalManager: goalManager, goal: goal)) {
+                                          Text(goal.title)
+                                      }
+                    
+                }
+            
+                }
+            .toolbar {
+                Button("Add") {
+                    showingAddSheet = true
+                }
             }
+                        .sheet(isPresented: $showingAddSheet) {
+                            AddGoalView(goalManager: goalManager)
+                        }
+                        .navigationTitle("My Goals")
         }
     }
+}
+
+#Preview {
+    GoalsView()
 }

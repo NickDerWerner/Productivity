@@ -9,22 +9,7 @@ import SwiftUI
 
 // STEP 1: Create the Todo Data Model
 // This defines what a single todo item looks like
-struct ChallengeItem: Identifiable, Codable {
-    var id = UUID()        // Unique identifier for each todo
-    var title: String      // The todo text
-    var isCompleted: Bool = false  // Whether it's done or not
-    var streak : Int = 0
-    var streakGoal : Int = 100
-    var isDailyChallenge: Bool = true //unused
-    
-    //for timer
-    var hasTimer: Bool = false
-       var timerDuration: Int = 0
-       var isTimerRunning: Bool = false
-       var timeRemaining: Int = 0
-       var timerEndDate: Date?
 
-}
 
 // STEP 8: Create the main TodoListView
 struct ChallengesView: View {
