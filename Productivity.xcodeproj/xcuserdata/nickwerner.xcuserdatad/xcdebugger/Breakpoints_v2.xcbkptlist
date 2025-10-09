@@ -18,6 +18,36 @@
             endingLineNumber = "14"
             landmarkName = "GoalManager"
             landmarkType = "3">
+            <Locations>
+               <Location
+                  uuid = "A250890B-86B4-4CF5-92CA-0A567089B46D - eb91f66b4c981fac"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Productivity.GoalManager.__allocating_init() -&gt; Productivity.GoalManager"
+                  moduleName = "Productivity.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/nickwerner/Documents/ReactProjects/Productivity/Productivity/Preview%20Content/Manager/GoalManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "A250890B-86B4-4CF5-92CA-0A567089B46D - 94e25f71f9e6f040"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Productivity.GoalManager.init() -&gt; Productivity.GoalManager"
+                  moduleName = "Productivity.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/nickwerner/Documents/ReactProjects/Productivity/Productivity/Preview%20Content/Manager/GoalManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "12"
+                  endingLineNumber = "12">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

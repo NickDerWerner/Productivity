@@ -11,70 +11,7 @@ import SwiftUI
 // This defines what a single todo item looks like
 
 
-// STEP 8: Create the main TodoListView
-struct ChallengesView: View {
-    // @StateObject creates and manages the TodoManager
-    @StateObject private var challengeManager = ChallengeManager()
-    
-    // @State variables for the UI
-    @State private var newTodoText = ""
-    @State private var showingAddAlert = false
-    
-    var body: some View {
-        VStack {
-            // STEP 9: Title
-            Text("My Todo List")
-                .font(.title)
-                .fontWeight(.bold)
-                .padding()
-            
-            // STEP 10: Check if we have todos
-            if challengeManager.challengeItems.isEmpty {
-                // Show empty state
-                VStack {
-                    Image(systemName: "list.bullet")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gray)
-                    
-                    Text("No todos yet!")
-                        .foregroundColor(.secondary)
-                        .padding()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                // STEP 11: Show the todo list
-                List {
-                    ForEach(challengeManager.challengeItems) { challenge in
-                        ChallengeRowView(challengeManager: challengeManager, challenge: challenge) { // Pass it here
-                          challengeManager.toggleChallenge(challenge)
-                        }
-                    }
-                    .onDelete(perform: challengeManager.deleteChallenge)
-                }
-                .listRowSpacing(20)
-                
-            }
-            
-            // STEP 12: Add todo button
-            Button("Add New Todo") {
-                showingAddAlert = true
-            }
-            .buttonStyle(.borderedProminent)
-            .padding()
-        }
-        // STEP 13: Alert for adding new todos
-        .alert("Add New Todo", isPresented: $showingAddAlert) {
-            TextField("Enter todo", text: $newTodoText)
-            Button("Add") {
-                if !newTodoText.isEmpty {
-                    challengeManager.addChallenge(newTodoText)
-                    newTodoText = ""  // Clear text field
-                }
-            }
-            Button("Cancel", role: .cancel) { }
-        }
-    }
-}
+
 
 // STEP 14: Create individual todo row
 // In the ChallengeRowView
@@ -100,8 +37,7 @@ struct ChallengeRowView: View {
             if challenge.hasTimer {
                 
                 HStack{
-                    VStack {
-                        // Play/Pause Button
+                    VStack { //button links mit Zeit drunter
                         if !challenge.isCompleted {
                             Button(action: {
                                 if challenge.isTimerRunning {
@@ -127,9 +63,10 @@ struct ChallengeRowView: View {
                             .foregroundColor(.gray)
                     }
                     Spacer()
-                    
+                  
+                   
                     // Streak
-                    Text("Streak: \(challenge.streak) \(challenge.streak == 1 ? "day" : "days")")
+                    Text(" \(challenge.streak) \(challenge.streak == 1 ? "day" : "days")")
                     
                     
                     
@@ -149,10 +86,13 @@ struct ChallengeRowView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     Spacer()
-                    Text("Streak: \(challenge.streak) \(challenge.streak == 1 ? "day" : "days")")
+                    Text(" \(challenge.streak) \(challenge.streak == 1 ? "day" : "days")")
                 } .offset(y: -13)
             }
+            Text(" \(challenge.associatedGoal.title) ")
+                .padding(.vertical, -30)
         }
+        
         .padding(.vertical, -5)
             
     }
@@ -170,8 +110,7 @@ struct ChallengeRowView: View {
 // Add this new component to your existing ChallengesView.swift file
 // Add this new component to your existing ChallengesView.swift file
 struct EmbeddedChallengesView: View {
-    @StateObject private var challengeManager = ChallengeManager()
-    
+    @ObservedObject var challengeManager: ChallengeManager
     // Add the timer property here
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -219,17 +158,7 @@ struct EmbeddedChallengesView: View {
                 
             }
             
-            // Add button for normal challenges
-            Button("Add New Challenge") {
-                showingAddAlert = true
-            }
-            .buttonStyle(.borderedProminent)
-            
-            // New button for timed challenges
-            Button("Add Timed Challenge") {
-                showingAddTimerAlert = true
-            }
-            .buttonStyle(.bordered)
+        
             
         }
         // Add the .onReceive and .onAppear modifiers to the main VStack
@@ -239,37 +168,16 @@ struct EmbeddedChallengesView: View {
         .onAppear {
             challengeManager.updateAndCheckTimers() // For syncing when the view loads ✅
         }
-        .alert("Add New Challenge", isPresented: $showingAddAlert) {
-            TextField("Enter challenge", text: $newTodoText)
-            Button("Add") {
-                if !newTodoText.isEmpty {
-                    challengeManager.addChallenge(newTodoText)
-                    newTodoText = ""
-                }
-            }
-            Button("Cancel", role: .cancel) { }
-        }
-        // New alert for timed challenges
-        .alert("Add Timed Challenge", isPresented: $showingAddTimerAlert) {
-            TextField("Enter title", text: $newTodoText)
-            TextField("Duration in minutes", text: $newChallengeDuration)
-                .keyboardType(.numberPad) // Shows a numeric keyboard
-            Button("Add") {
-                if !newTodoText.isEmpty, let duration = Int(newChallengeDuration) {
-                    challengeManager.addChallengeWithTimer(newTodoText, durationInMinutes: duration)
-                    newTodoText = ""
-                    newChallengeDuration = ""
-                }
-            }
-            Button("Cancel", role: .cancel) { }
-        }
+       
     }}
     
 
 
 
 
-// STEP 15: Preview for testing
-#Preview {
-    EmbeddedChallengesView()
-}
+
+
+
+
+
+

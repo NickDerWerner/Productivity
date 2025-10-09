@@ -61,8 +61,8 @@ class ChallengeManager: ObservableObject {
     }
     
     // STEP 5: Add a new todo
-    func addChallenge(_ title: String) {
-        let newChallenge = ChallengeItem(title: title)
+    func addChallenge(_ title: String, associatedGoal: GoalItem) {
+        let newChallenge = ChallengeItem(title: title, associatedGoal: associatedGoal)
         challengeItems.append(newChallenge)  // Add to list
         saveChallenge()  // Save immediately
     }
@@ -91,6 +91,11 @@ class ChallengeManager: ObservableObject {
             if challengeItems[index].isDailyChallenge{
                 if challengeItems[index].isCompleted{
                     challengeItems[index].isCompleted = false
+                    if challengeItems[index].hasTimer{
+                        challengeItems[index].timeRemaining = challengeItems[index].timerDuration
+                        challengeItems[index].timerEndDate = nil
+                        challengeItems[index].isTimerRunning = false
+                    }
                 }else{
                     challengeItems[index].streak = 0
                 }
@@ -187,10 +192,11 @@ class ChallengeManager: ObservableObject {
         }
     }
     
-    func addChallengeWithTimer(_ title: String, durationInMinutes: Int) {
+    func addChallengeWithTimer(_ title: String, durationInMinutes: Int, associatedGoal: GoalItem) {
         // Erstelle ein neues ChallengeItem
         let newChallenge = ChallengeItem(
             title: title,
+            associatedGoal: associatedGoal,
             hasTimer: true,
             timerDuration: durationInMinutes * 60, // Dauer in Sekunden umrechnen
             timeRemaining: durationInMinutes * 60 // Verbleibende Zeit auf die Gesamtdauer setzen
@@ -203,6 +209,17 @@ class ChallengeManager: ObservableObject {
         saveChallenge()
     }
 
-    
+    func resetAllData() {
+            // 1. Lösche alle Challenges aus dem Speicher der App
+            challengeItems.removeAll()
+            
+            // 2. Lösche die gespeicherten Daten aus UserDefaults
+            if let bundleID = Bundle.main.bundleIdentifier {
+                UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            }
+            
+            print("Alle App-Daten wurden zurückgesetzt.")
+        }
+
     
 }

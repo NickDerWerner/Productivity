@@ -13,7 +13,7 @@ struct ChallengeItem: Identifiable, Codable {
     var streak : Int = 0
     var streakGoal : Int = 100
     var isDailyChallenge: Bool = true //unused
-    var associatedGoal: GoalItem?
+    var associatedGoal: GoalItem
     var associatedSubGoal: SubgoalItem?
     //for timer
     var hasTimer: Bool = false

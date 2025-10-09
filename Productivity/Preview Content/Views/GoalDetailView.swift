@@ -8,6 +8,7 @@ import SwiftUI
 
 struct GoalDetailView: View {
     @ObservedObject var goalManager: GoalManager
+    @ObservedObject var challengeManager: ChallengeManager
     let goal: GoalItem
     @Environment(\.dismiss) var dismiss
     
@@ -19,6 +20,7 @@ struct GoalDetailView: View {
             
             Text(goal.description)
             
+            ChallengesInGoalsView(challengeManager: challengeManager, goal: goal)
             Spacer()
             
             // 2. Der angepasste Button

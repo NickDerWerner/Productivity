@@ -11,6 +11,7 @@ import SwiftUI
 
 struct GoalsView: View {
     @StateObject private var goalManager = GoalManager()
+    @ObservedObject var challengeManager: ChallengeManager
     @State private var showingAddSheet = false
     
     var body: some View {
@@ -18,7 +19,7 @@ struct GoalsView: View {
            
             List {
                 ForEach(goalManager.goalItems){ goal in
-                    NavigationLink(destination: GoalDetailView(goalManager: goalManager, goal: goal)) {
+                    NavigationLink(destination: GoalDetailView(goalManager: goalManager, challengeManager: challengeManager, goal: goal)) {
                                           Text(goal.title)
                                       }
                     
@@ -38,6 +39,4 @@ struct GoalsView: View {
     }
 }
 
-#Preview {
-    GoalsView()
-}
+

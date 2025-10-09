@@ -13,7 +13,7 @@ class GoalManager: ObservableObject {
     private let goalKey = "goalkey"
     
     init(){
-        
+        loadGoals()
     }
     
     func loadGoals(){
@@ -31,8 +31,8 @@ class GoalManager: ObservableObject {
     
     // In GoalManager.swift
 
-    func addGoal(title: String, description: String) {
-        let newGoal = GoalItem(title: title, description: description, creationDate: Date())
+    func addGoal(title: String, description: String? = nil) {
+        let newGoal = GoalItem(title: title, description: description ?? "", creationDate: Date())
         goalItems.append(newGoal)
         saveGoals()
         
