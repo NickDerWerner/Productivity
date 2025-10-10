@@ -15,7 +15,6 @@ struct HomeView: View {
                         // EMBEDDED TODO LIST
                         // This is the key part - we're using our TodoListView as a component
                         TodoListView()
-                            .frame(minHeight: 300)  // Give it minimum space
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color(.systemGray6))

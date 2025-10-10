@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+ 
 struct ContentView: View {
     @StateObject private var challengeManager = ChallengeManager()
     var body: some View {

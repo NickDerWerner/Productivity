@@ -16,10 +16,10 @@ struct GoalDetailView: View {
     @State private var showingDeleteAlert = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 20) {
             
             Text(goal.description)
-            
+                .frame(maxWidth: .infinity, alignment: .leading)
             ChallengesInGoalsView(challengeManager: challengeManager, goal: goal)
             Spacer()
             
@@ -38,7 +38,7 @@ struct GoalDetailView: View {
                 dismiss() // Diese Funktion schließt die aktuelle Ansicht
             }
         } message: {
-            Text("Once deleted, your Challenge is gone, bruh")
+            Text("Once deleted, your Goal is gone, bruh")
         }
     }
 }
