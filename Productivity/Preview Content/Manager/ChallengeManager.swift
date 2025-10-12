@@ -108,6 +108,14 @@ class ChallengeManager: ObservableObject {
         }
     }
     
+    func moveChallenge(from source: IndexSet, to destination: Int) {
+            // This command rearranges the items in your original array.
+            challengeItems.move(fromOffsets: source, toOffset: destination)
+            
+            // IMPORTANT: Save the new order immediately.
+            saveChallenge()
+        }
+    
     func checkForDailyReset(){
         let lastResetKey = "lastResetKey"
         let lastResetDate = userDefaults.object(forKey: lastResetKey) as? Date
@@ -128,6 +136,7 @@ class ChallengeManager: ObservableObject {
         challengeItems.remove(atOffsets: offsets)
         saveChallenge()  // Save immediately
     }
+    
     
     
     //Timer relatet functions

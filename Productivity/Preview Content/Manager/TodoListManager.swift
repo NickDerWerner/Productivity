@@ -38,8 +38,8 @@ class TodoManager: ObservableObject {
     }
     
     // STEP 5: Add a new todo
-    func addTodo(_ title: String) {
-        let newTodo = TodoItem(title: title)
+    func addTodo(_ title: String, dueDate: Date) {
+        let newTodo = TodoItem(title: title, dueDate: dueDate)
         todoItems.append(newTodo)  // Add to list
         saveTodos()  // Save immediately
     }

@@ -8,11 +8,16 @@ import SwiftUI
 struct TodoListView: View {
     @StateObject private var todoManager = TodoManager()
     @State private var newTodoText = ""
-    @State private var showingAddAlert = false
+    @State private var newDate: Date? = nil
+    @State private var showingAddSheet = false
+    
+    private var sortedTodoList: [TodoItem]{
+        todoManager.todoItems.sorted{$0.dueDate < $1.dueDate}
+    }
     
     var body: some View {
         VStack(spacing: 0) {
-            Text("My Todo List")
+            Text("TODOs")
                 .font(.title)
                 .fontWeight(.bold)
                 .padding()
@@ -32,7 +37,7 @@ struct TodoListView: View {
                 
                 // Liste mit Todos
                 List {
-                    ForEach(todoManager.todoItems) { todo in
+                    ForEach(sortedTodoList) { todo in
                         VStack(alignment: .leading, spacing: 0) {
                             TodoRowView(todo: todo) {
                                 todoManager.toggleTodo(todo)
@@ -56,23 +61,17 @@ struct TodoListView: View {
             }
             
             Button("Add New Todo") {
-                showingAddAlert = true
+                showingAddSheet = true
             }
             .buttonStyle(.borderedProminent)
             .padding(.top, 15)
             
             Spacer(minLength: 15)
         }
-        .alert("Add New Todo", isPresented: $showingAddAlert) {
-            TextField("Enter todo", text: $newTodoText)
-            Button("Add") {
-                if !newTodoText.isEmpty {
-                    todoManager.addTodo(newTodoText)
-                    newTodoText = ""
-                }
-            }
-            Button("Cancel", role: .cancel) { }
-        }
+        .sheet(isPresented: $showingAddSheet) {
+                  // This is where you create and show your new sheet view
+                  AddTodoSheetView(isPresented: $showingAddSheet, todoManager: todoManager)
+              }
     }
 }
 
@@ -80,6 +79,49 @@ struct TodoListView: View {
 struct TodoRowView: View {
     let todo: TodoItem
     let onToggle: () -> Void
+    
+    
+    private var dueDateStatus: String{
+        if todo.isCompleted{
+            return ""
+        }
+        let calendar = Calendar.current
+        let currentDay = calendar.startOfDay(for: Date())
+        let todoDay = calendar.startOfDay(for: todo.dueDate)
+        guard let daysUntilTodo = calendar.dateComponents([.day], from: currentDay, to: todoDay).day else{
+            return ""
+        }
+        
+        switch daysUntilTodo{
+        case ..<0: // Any negative number (in the past)
+            return "overdue by \(abs(daysUntilTodo)) day\(abs(daysUntilTodo) == 1 ? "" : "s")"
+        case 0:
+            return "due today"
+        case 1:
+            return "due tomorrow"
+        default:
+            return "due in \(daysUntilTodo) days"
+       
+        }
+    }
+    
+    private var dueDateColor: Color{
+        let calendar = Calendar.current
+        let currentDay = calendar.startOfDay(for: Date())
+        let todoDay = calendar.startOfDay(for: todo.dueDate)
+        guard let daysUntilTodo = calendar.dateComponents([.day], from: currentDay, to: todoDay).day else{
+            return .primary
+        }
+        switch daysUntilTodo{
+        case ..<0:
+            return .red
+        case 0:
+            return .orange
+        default:
+            return .secondary
+        }
+        
+    }
     
     var body: some View {
         HStack {
@@ -93,11 +135,55 @@ struct TodoRowView: View {
             Text(todo.title)
                 .strikethrough(todo.isCompleted)
                 .foregroundColor(todo.isCompleted ? .secondary : .primary)
-            
             Spacer()
+            
+            Text(dueDateStatus)
+                .font(.caption) // Make it smaller than the title
+                .foregroundColor(dueDateColor) // Use a lighter color
+           
+            
         }
         .padding(.vertical, 8)
         .padding(.horizontal) // Wichtig: Fügt seitlichen Abstand hinzu
+    }
+}
+
+
+// Add this new view to your TodoListView.swift file
+
+struct AddTodoSheetView: View {
+    // This allows the sheet to dismiss itself
+    @Binding var isPresented: Bool
+    
+    // A reference to your data manager
+    @ObservedObject var todoManager: TodoManager
+    
+    // Local state for the new todo's data
+    @State private var newTodoText = ""
+    @State private var newDate = Date()
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                TextField("Enter todo", text: $newTodoText)
+                
+                // The DatePicker works perfectly inside a Form
+                DatePicker("Due Date", selection: $newDate, displayedComponents: .date)
+            }
+            .navigationTitle("New Todo")
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    isPresented = false // Dismiss the sheet
+                },
+                trailing: Button("Add") {
+                    if !newTodoText.isEmpty {
+                        // Call the manager with both text and date
+                        todoManager.addTodo(newTodoText, dueDate: newDate)
+                        isPresented = false // Dismiss the sheet
+                    }
+                }
+            )
+        }
     }
 }
 

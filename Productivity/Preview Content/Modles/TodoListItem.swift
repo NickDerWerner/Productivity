@@ -11,4 +11,5 @@ struct TodoItem: Identifiable, Codable {
     var id = UUID()        // Unique identifier for each todo
     var title: String      // The todo text
     var isCompleted: Bool = false  // Whether it's done or not
+    var dueDate: Date
 }
