@@ -130,11 +130,16 @@ class ChallengeManager: ObservableObject {
     
     }
     
+    func editChallenge(UUID: UUID, newTitle: String) {
+        if let index = challengeItems.firstIndex(where: {$0.id == UUID}){
+            challengeItems[index].title = newTitle
+            saveChallenge()
+        }
+    }
     
-    // STEP 7: Delete todos
-    func deleteChallenge(at offsets: IndexSet) {
-        challengeItems.remove(atOffsets: offsets)
-        saveChallenge()  // Save immediately
+    func deleteChallenge(_ challengeToDelete: ChallengeItem) {
+        challengeItems.removeAll { $0.id == challengeToDelete.id }
+        saveChallenge() // Speichere die Änderung
     }
     
     

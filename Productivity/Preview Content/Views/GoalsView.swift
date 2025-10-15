@@ -26,15 +26,23 @@ struct GoalsView: View {
                 }
             
                 }
+            .navigationTitle("My Goals")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                Button("Add") {
-                    showingAddSheet = true
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingAddSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 20))
+                    }
                 }
             }
+
                         .sheet(isPresented: $showingAddSheet) {
                             AddGoalView(goalManager: goalManager)
                         }
-                        .navigationTitle("My Goals")
+                        
         }
     }
 }

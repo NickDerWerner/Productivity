@@ -28,8 +28,16 @@ class GoalManager: ObservableObject {
             userDefaults.set(encodedData, forKey: goalKey)
         }
     }
+    func updateGoal(id: UUID, tempTitle: String, tempDescription: String? = nil){
+        if let index = goalItems.firstIndex(where: {$0.id == id}){
+            goalItems[index].title = tempTitle
+            if let desc = tempDescription{
+                goalItems[index].description = desc
+            }
+            saveGoals()
+        }
+    }
     
-    // In GoalManager.swift
 
     func addGoal(title: String, description: String? = nil) {
         let newGoal = GoalItem(title: title, description: description ?? "", creationDate: Date())
