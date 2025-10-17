@@ -137,10 +137,11 @@ class ChallengeManager: ObservableObject {
         }
     }
     
+    
     func deleteChallenge(_ challengeToDelete: ChallengeItem) {
-        challengeItems.removeAll { $0.id == challengeToDelete.id }
-        saveChallenge() // Speichere die Änderung
-    }
+            challengeItems.removeAll { $0.id == challengeToDelete.id }
+            saveChallenge() // Speichere die Änderung
+        }
     
     
     

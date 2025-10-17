@@ -9,9 +9,10 @@ import SwiftUI
  
 struct ContentView: View {
     @StateObject private var challengeManager = ChallengeManager()
+    @StateObject private var todoManager = TodoManager()
     var body: some View {
         TabView {
-            HomeView(challengeManager: challengeManager)
+            HomeView(challengeManager: challengeManager, todoManager: todoManager)
                 .tabItem {
                     Image(systemName: "house")
                     Text("Home")

@@ -27,7 +27,7 @@ struct ChallengesInGoalsView: View {
     @State private var showingAddTimerAlert = false
     @Binding var isEditing: Bool
     @State private var challengeToEdit: ChallengeItem?
-    
+    @Binding var showingAddSheet: Bool
     
     var body: some View {
         VStack(spacing: 15) {
@@ -66,27 +66,22 @@ struct ChallengesInGoalsView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 5, trailing: 12))
+                        
                     }
                     .onDelete(perform: deleteChallenge)   // Swipe-to-Delete
+                    .deleteDisabled(!isEditing)
+                    
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .environment(\.editMode, .constant(isEditing ? .active : .inactive))
                 .scrollDisabled(true)
             }
-            // Add button for normal challenges
-            Button("Add New Challenge") {
-                showingAddAlert = true
-            }
-            .buttonStyle(.borderedProminent)
             
-            // New button for timed challenges
-            Button("Add Timed Challenge") {
-                showingAddTimerAlert = true
-            }
-            .buttonStyle(.bordered)
+           
             
         }
+        
         // Add the .onReceive and .onAppear modifiers to the main VStack
         .onReceive(timer) { _ in
             challengeManager.updateAndCheckTimers() // For live updates
@@ -94,30 +89,7 @@ struct ChallengesInGoalsView: View {
         .onAppear {
             challengeManager.updateAndCheckTimers() // For syncing when the view loads ✅
         }
-        .alert("Add New Challenge", isPresented: $showingAddAlert) {
-            TextField("Enter challenge", text: $newTodoText)
-            Button("Add") {
-                if !newTodoText.isEmpty {
-                    challengeManager.addChallenge(newTodoText, associatedGoal: goal)
-                    newTodoText = ""
-                }
-            }
-            Button("Cancel", role: .cancel) { }
-        }
-        // New alert for timed challenges
-        .alert("Add Timed Challenge", isPresented: $showingAddTimerAlert) {
-            TextField("Enter title", text: $newTodoText)
-            TextField("Duration in minutes", text: $newChallengeDuration)
-                .keyboardType(.numberPad) // Shows a numeric keyboard
-            Button("Add") {
-                if !newTodoText.isEmpty, let duration = Int(newChallengeDuration) {
-                    challengeManager.addChallengeWithTimer(newTodoText, durationInMinutes: duration, associatedGoal: goal)
-                    newTodoText = ""
-                    newChallengeDuration = ""
-                }
-            }
-            Button("Cancel", role: .cancel) { }
-        }
+       
     }
     
     private func deleteChallenge(at offsets: IndexSet) {

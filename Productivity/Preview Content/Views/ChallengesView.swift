@@ -45,7 +45,8 @@ struct ChallengeRowView: View {
             
             Spacer()
             
-            Text("\(challenge.streak) days")
+            Text("🔥: \(challenge.streak) day\(challenge.streak == 1 ? "" : "s")")
+
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -91,6 +92,7 @@ struct ChallengeRowView: View {
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(.gray)
         }
+        .padding(.vertical, -6)
     }
 }
 
@@ -103,7 +105,7 @@ struct EmbeddedChallengesView: View {
     @State private var isEditing = false
 
     var body: some View {
-        NavigationView {
+        
             Group {
                 if challengeManager.challengeItems.isEmpty {
                     VStack {
@@ -125,24 +127,25 @@ struct EmbeddedChallengesView: View {
                             // Spacing is now handled inside the ChallengeRowView.
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 5, trailing: 12))
+                            .listRowInsets(EdgeInsets(top: 2, leading: 2, bottom: 5, trailing: 2))
                         }
                         .onMove(perform: challengeManager.moveChallenge)
                     }
                     .listStyle(.plain)
                     .scrollDisabled(true)
                     .environment(\.editMode, .constant(isEditing ? .active : .inactive))
+                    .frame(height: CGFloat(challengeManager.challengeItems.count) * 110)
                 }
             }
-            .navigationTitle("My Challenges")
-            .toolbar {
-                Button(isEditing ? "Done" : "Edit") {
-                    withAnimation {
-                        isEditing.toggle()
-                    }
-                }
-            }
-        }
+            
+//            .toolbar {
+//                Button(isEditing ? "Done" : "Edit") {
+//                    withAnimation {
+//                        isEditing.toggle()
+//                    }
+//                }
+//            }
+        
         .onReceive(timer) { _ in
             challengeManager.updateAndCheckTimers()
         }
@@ -151,4 +154,5 @@ struct EmbeddedChallengesView: View {
         }
     }
 }
+
 
