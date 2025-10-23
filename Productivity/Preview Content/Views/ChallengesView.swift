@@ -45,7 +45,7 @@ struct ChallengeRowView: View {
             
             Spacer()
             
-            Text("🔥: \(challenge.streak) day\(challenge.streak == 1 ? "" : "s")")
+            Text("🔥\(challenge.streak)")
 
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -101,8 +101,6 @@ struct ChallengeRowView: View {
 struct EmbeddedChallengesView: View {
     @ObservedObject var challengeManager: ChallengeManager
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
-    @State private var isEditing = false
 
     var body: some View {
         
@@ -113,7 +111,7 @@ struct EmbeddedChallengesView: View {
                             .font(.system(size: 40))
                             .foregroundColor(.gray)
                         
-                        Text("No challenges yet!")
+                        Text("No challenges yet! Add in Goals")
                             .foregroundColor(.secondary)
                             .padding()
                     }
@@ -133,18 +131,10 @@ struct EmbeddedChallengesView: View {
                     }
                     .listStyle(.plain)
                     .scrollDisabled(true)
-                    .environment(\.editMode, .constant(isEditing ? .active : .inactive))
                     .frame(height: CGFloat(challengeManager.challengeItems.count) * 110)
                 }
             }
             
-//            .toolbar {
-//                Button(isEditing ? "Done" : "Edit") {
-//                    withAnimation {
-//                        isEditing.toggle()
-//                    }
-//                }
-//            }
         
         .onReceive(timer) { _ in
             challengeManager.updateAndCheckTimers()

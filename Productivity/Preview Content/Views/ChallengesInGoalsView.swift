@@ -28,6 +28,7 @@ struct ChallengesInGoalsView: View {
     @Binding var isEditing: Bool
     @State private var challengeToEdit: ChallengeItem?
     @Binding var showingAddSheet: Bool
+    @Binding var parentIDForAdding: UUID?
     
     var body: some View {
         VStack(spacing: 15) {
@@ -52,21 +53,63 @@ struct ChallengesInGoalsView: View {
             } else {
                 // --- ERSETZE DEN ALTEN VSTACK DURCH DIESE LIST ---
                 List {
-                    ForEach(challengeManager.challengeItems.filter { $0.associatedGoal == goal }) { challenge in
-                        ChallengeRowInGoalView(
-                            challengeManager: challengeManager,
-                            challenge: challenge
-                        ) {
-                            challengeManager.toggleChallenge(challenge)
-                        }
-                        .contentShape(Rectangle()) // ganze Zeile tappable
-                        .onTapGesture {
-                            if isEditing { challengeToEdit = challenge }
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 5, trailing: 12))
+                    ForEach(challengeManager.challengeItems.filter { $0.associatedGoal == goal && $0.isSubChallange == false}) { challenge in
                         
+                        if challenge.isAggregator {
+                            
+                            // This is the correct structure
+                            DisclosureGroup {
+                              
+                                
+                                ForEach(challengeManager.challengeItems.filter { $0.associatedAggregatorID == challenge.id }) { subChallenge in
+                                    
+                                    // This displays one row for each sub-challenge
+                                    ChallengeRowInGoalView(challengeManager: challengeManager, challenge: subChallenge) {
+                                        challengeManager.toggleChallenge(subChallenge)
+                                    }//listmodifiers after this
+                                    .listRowSeparator(.hidden)
+                                    
+                                    // You might want to add some indentation
+                                    .padding(.leading, 20)
+                                    .padding(.top, -20)
+                                }
+                                
+                            } label: {
+                                
+                                ChallengeRowInGoalView(challengeManager: challengeManager, challenge: challenge) {
+                                    challengeManager.toggleChallenge(challenge)
+                                }
+                                .contextMenu {
+                                    Button(action: {
+                                                    // The action is the *same logic* as before
+                                                    self.parentIDForAdding = challenge.id // Set the parent ID
+                                                    self.showingAddSheet = true          // Show the sheet
+                                                }) {
+                                                    // This is the button's label in the menu
+                                                    Text("Add Sub-Challenge")
+                                                    Image(systemName: "plus.circle")
+                                                }
+                                }
+                                .listRowSeparator(.hidden)
+                                // Add your list modifiers for the main aggregator row here
+                                // (e.g., .listRowSeparator(.hidden), .listRowInsets(...))
+                            }
+                        }else{
+                            
+                            ChallengeRowInGoalView(
+                                challengeManager: challengeManager,
+                                challenge: challenge
+                            ) {
+                                challengeManager.toggleChallenge(challenge)
+                            }
+                            .contentShape(Rectangle()) // ganze Zeile tappable
+                            .onTapGesture {
+                                if isEditing { challengeToEdit = challenge }
+                            }
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 5, trailing: 12))
+                        }
                     }
                     .onDelete(perform: deleteChallenge)   // Swipe-to-Delete
                     .deleteDisabled(!isEditing)
@@ -76,6 +119,7 @@ struct ChallengesInGoalsView: View {
                 .scrollContentBackground(.hidden)
                 .environment(\.editMode, .constant(isEditing ? .active : .inactive))
                 .scrollDisabled(true)
+                .listRowSeparator(.hidden)
             }
             
            
@@ -133,11 +177,13 @@ struct ChallengeRowInGoalView: View {
                 Text(challenge.title)
                     .font(.headline)
                 
-               
+            if challenge.isAggregator {
+                Text("🦄")
+            }
             
             Spacer()
             
-            Text("\(challenge.streak) days")
+            Text("🔥\(challenge.streak)")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }

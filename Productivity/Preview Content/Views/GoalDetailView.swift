@@ -18,6 +18,7 @@ struct GoalDetailView: View {
     
     // 1. Die neue State-Variable
     @State private var showingDeleteAlert = false
+    @State private var parentIDForAdding: UUID? = nil
     
     private var liveGoal: GoalItem {
            // Find the most up-to-date version of the goal from the manager
@@ -49,7 +50,7 @@ struct GoalDetailView: View {
                     Text(liveGoal.description)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                ChallengesInGoalsView(challengeManager: challengeManager, goal: goal, isEditing: $isEditing, showingAddSheet: $showingAddSheet)
+                ChallengesInGoalsView(challengeManager: challengeManager, goal: goal, isEditing: $isEditing, showingAddSheet: $showingAddSheet, parentIDForAdding: $parentIDForAdding)//missing variable
                 Spacer()
                 if isEditing{
                     // 2. Der angepasste Button
@@ -97,7 +98,7 @@ struct GoalDetailView: View {
             }
             
             .sheet(isPresented: $showingAddSheet){
-                AddChallengeView(showingAddSheed: $showingAddSheet, challengeManager: challengeManager, goal: goal)
+                AddChallengeView(showingAddSheed: $showingAddSheet, challengeManager: challengeManager, goal: goal, parentIDForAdding: $parentIDForAdding)
             }
         
     }

@@ -61,10 +61,40 @@ class ChallengeManager: ObservableObject {
     }
     
     // STEP 5: Add a new todo
-    func addChallenge(_ title: String, associatedGoal: GoalItem) {
-        let newChallenge = ChallengeItem(title: title, associatedGoal: associatedGoal)
+    func addChallenge(_ title: String, associatedGoal: GoalItem, isAggregator: Bool, associatedAggregatorID: UUID? = nil) {
+        
+        let isSubChallenge: Bool = associatedAggregatorID != nil
+        let newChallenge =
+        ChallengeItem(
+            title: title,
+                      associatedGoal: associatedGoal,
+                      isAggregator: isAggregator,
+                      isSubChallange: isSubChallenge,
+                      associatedAggregatorID: associatedAggregatorID
+        )
         challengeItems.append(newChallenge)  // Add to list
         saveChallenge()  // Save immediately
+    }
+    
+    func addChallengeWithTimer(_ title: String, associatedGoal: GoalItem, isAggregator: Bool, associatedAggregatorID: UUID? = nil, durationInMinutes: Int) {
+   
+        let isSubChallenge: Bool = associatedAggregatorID != nil
+        let newChallenge = ChallengeItem(
+            title: title,
+            associatedGoal: associatedGoal,
+            isAggregator: isAggregator,
+            isSubChallange: isSubChallenge,
+            associatedAggregatorID: associatedAggregatorID,
+            hasTimer: true,
+            timerDuration: durationInMinutes * 60, // Dauer in Sekunden umrechnen
+            timeRemaining: durationInMinutes * 60 // Verbleibende Zeit auf die Gesamtdauer setzen
+        )
+        
+        // Füge die Challenge zur Liste hinzu
+        challengeItems.append(newChallenge)
+        
+        // Speichere die Änderungen sofort
+        saveChallenge()
     }
     
     // STEP 6: Toggle todo completion
@@ -80,6 +110,22 @@ class ChallengeManager: ObservableObject {
             } else if (challengeItems[index].isCompleted == false && wascompleted){
                 challengeItems[index].streak -= 1
             }
+            
+            if challengeItems[index].isSubChallange{
+                if let parentID = challengeItems[index].associatedAggregatorID{
+                    
+                    let allSubChallenges = challengeItems.filter{$0.associatedAggregatorID == parentID}
+                    
+                    if allSubChallenges.allSatisfy(\.isCompleted){
+                        if let parentIndex = challengeItems.firstIndex(where: {$0.id == parentID}) {
+                        if challengeItems[parentIndex].isCompleted == false{
+                            challengeItems[parentIndex].isCompleted = true
+                            challengeItems[parentIndex].streak += 1
+                            }
+                           
+                        }
+                    }
+            }}
             saveChallenge()  // Save immediately
         }
     }
@@ -194,8 +240,7 @@ class ChallengeManager: ObservableObject {
                     challengeItems[index].isTimerRunning = false
                     challengeItems[index].timerEndDate = nil
                     if !challengeItems[index].isCompleted {
-                        challengeItems[index].isCompleted = true
-                        challengeItems[index].streak += 1
+                       toggleChallenge(challengeItems[index])
                     }
                 }
                 needsSave = true
@@ -207,22 +252,7 @@ class ChallengeManager: ObservableObject {
         }
     }
     
-    func addChallengeWithTimer(_ title: String, durationInMinutes: Int, associatedGoal: GoalItem) {
-        // Erstelle ein neues ChallengeItem
-        let newChallenge = ChallengeItem(
-            title: title,
-            associatedGoal: associatedGoal,
-            hasTimer: true,
-            timerDuration: durationInMinutes * 60, // Dauer in Sekunden umrechnen
-            timeRemaining: durationInMinutes * 60 // Verbleibende Zeit auf die Gesamtdauer setzen
-        )
-        
-        // Füge die Challenge zur Liste hinzu
-        challengeItems.append(newChallenge)
-        
-        // Speichere die Änderungen sofort
-        saveChallenge()
-    }
+    
 
     func resetAllData() {
             // 1. Lösche alle Challenges aus dem Speicher der App

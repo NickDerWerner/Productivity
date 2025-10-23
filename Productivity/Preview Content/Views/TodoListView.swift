@@ -29,7 +29,10 @@ struct TodoListView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 20))
-                }.padding()
+                }
+                .buttonStyle(.glassProminent)
+                
+                .padding()
                 
               
             }
@@ -64,14 +67,14 @@ struct TodoListView: View {
                             
                         }
                         // DIESE ZEILE IST DIE KORREKTUR
-                        .listRowBackground(Color.clear) // Macht den Zeilenhintergrund transparent
+                        .listRowBackground(Color.clear) // Macht den Zeilenhintergrund transparent hier könnte ich auch die Farbe ändern
                     }
                     .onDelete(perform: todoManager.deleteTodos)
                     .listRowSeparator(.hidden) // Versteckt die automatischen Linien
                     .listRowInsets(EdgeInsets())    // Entfernt Standard-Einrückung für volle Kontrolle
                 }
                 .listStyle(.plain)
-                .frame(height: CGFloat(todoManager.todoItems.count) * 44) // Höhe pro Zeile angepasst
+                .frame(height: CGFloat(todoManager.todoItems.count) * 52) // Höhe pro Zeile angepasst
                 .scrollDisabled(true)
             }
         }
@@ -130,6 +133,25 @@ struct TodoRowView: View {
         
     }
     
+    private var priorityStatus: String{
+        if todo.isCompleted{
+            return ""
+        }
+        let priority = todo.priority
+        
+        switch priority{
+        case 0:
+            return "🟢"
+        case 1:
+            return "🟠"
+        case 2:
+            return "🔴"
+        default:
+            return "Unknown"
+        }
+        
+    }
+    
     var body: some View {
         HStack {
             Button(action: onToggle) {
@@ -142,12 +164,13 @@ struct TodoRowView: View {
             Text(todo.title)
                 .strikethrough(todo.isCompleted)
                 .foregroundColor(todo.isCompleted ? .secondary : .primary)
+          
             Spacer()
-            
             Text(dueDateStatus)
                 .font(.caption) // Make it smaller than the title
                 .foregroundColor(dueDateColor) // Use a lighter color
-           
+            
+            Text(priorityStatus)
             
         }
        .padding(.vertical, 8)

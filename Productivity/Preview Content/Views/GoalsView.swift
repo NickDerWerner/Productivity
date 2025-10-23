@@ -36,6 +36,7 @@ struct GoalsView: View {
                         Image(systemName: "plus")
                             .font(.system(size: 20))
                     }
+                    .buttonStyle(.glassProminent)
                 }
             }
 

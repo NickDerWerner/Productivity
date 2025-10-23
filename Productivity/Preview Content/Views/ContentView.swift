@@ -41,23 +41,25 @@ struct ContentView: View {
 
 struct ProfileView: View {
     @ObservedObject var challengeManager: ChallengeManager
-    @State private var showingResetAlert = false // Zustand für den Alert
+    @State private var showingResetAlert = false
 
     var body: some View {
         NavigationView {
-            // Ein Formular eignet sich gut für Einstellungs-Seiten
-            Form {
-                Section(header: Text("Gefahrenzone")) {
+            SettingsView()
+                
+            VStack {
+                // all the settings form content from SettingsView
+                    
+                Section("Gefahrenzone") {
                     Button("Alle App-Daten zurücksetzen", role: .destructive) {
-                        showingResetAlert = true // Zeige den Alert an
+                        showingResetAlert = true
                     }
                 }
             }
             .navigationTitle("Profile")
             .alert("Bist du sicher?", isPresented: $showingResetAlert) {
                 Button("Alles löschen", role: .destructive) {
-                    // Wenn der Benutzer bestätigt, rufe die Reset-Funktion auf
-               challengeManager.resetAllData()
+                    challengeManager.resetAllData()
                 }
                 Button("Abbrechen", role: .cancel) { }
             } message: {
@@ -66,6 +68,7 @@ struct ProfileView: View {
         }
     }
 }
+
 #Preview {
     ContentView()
 }

@@ -12,4 +12,5 @@ struct TodoItem: Identifiable, Codable {
     var title: String      // The todo text
     var isCompleted: Bool = false  // Whether it's done or not
     var dueDate: Date
+    var priority: Int 
 }

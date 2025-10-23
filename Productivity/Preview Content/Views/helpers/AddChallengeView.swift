@@ -13,13 +13,22 @@ struct AddChallengeView: View{
     let goal: GoalItem
     @State var title: String = ""
     @State var time: Int?
-    
+    @State var isAggregator: Bool = false
+    @Binding var parentIDForAdding: UUID?
     
     var body: some View{
         NavigationView {
             Form {
                 TextField("Enter Name", text: $title)
-                TextField("Enter time in Minutes", value: $time, format: .number)
+                
+                if isAggregator == false {
+                    TextField("Enter time in Minutes", value: $time, format: .number)
+                }
+                
+                if parentIDForAdding == nil && time == nil{
+                    Toggle("Is Aggregation Challenge", isOn: $isAggregator)
+                }
+                
             }
             
             .navigationTitle("New Challange")
@@ -32,13 +41,13 @@ struct AddChallengeView: View{
                         if let minutes = time, minutes > 0 {
                             //add with timer
             
-                            challengeManager.addChallengeWithTimer(title, durationInMinutes: time ?? 0, associatedGoal: goal)
+                            challengeManager.addChallengeWithTimer(title, associatedGoal: goal, isAggregator: isAggregator, associatedAggregatorID: parentIDForAdding, durationInMinutes: time ?? 0)
                         }else{
                             // add without timer
-                            challengeManager.addChallenge(title, associatedGoal: goal)
+                            challengeManager.addChallenge(title, associatedGoal: goal, isAggregator: isAggregator, associatedAggregatorID: parentIDForAdding)
                         }
                         showingAddSheed = false
-
+                        parentIDForAdding = nil
                     }
                 }
             )
