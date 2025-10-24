@@ -16,6 +16,8 @@ import SwiftUI
 // MARK: - Challenge Row View (WITH STYLING)
 struct ChallengeRowView: View {
     @ObservedObject var challengeManager: ChallengeManager
+   
+    
     let challenge: ChallengeItem
     let onToggle: () -> Void
     
@@ -38,7 +40,7 @@ struct ChallengeRowView: View {
                 Text(challenge.title)
                     .font(.headline)
                 
-                Text(challenge.associatedGoal.title)
+                Text(challenge.associatedGoal?.title ?? "Routine")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -100,42 +102,113 @@ struct ChallengeRowView: View {
 // MARK: - Main Embedded Challenges View (SIMPLIFIED)
 struct EmbeddedChallengesView: View {
     @ObservedObject var challengeManager: ChallengeManager
+    @State private var showAddToRoutineView: Bool = false
+    @State private var challengeToAdd: ChallengeItem?
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         
-            Group {
-                if challengeManager.challengeItems.isEmpty {
-                    VStack {
-                        Image(systemName: "star.circle")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                        
-                        Text("No challenges yet! Add in Goals")
-                            .foregroundColor(.secondary)
-                            .padding()
-                    }
-                } else {
-                    List {
-                        ForEach(challengeManager.challengeItems) { challenge in
-                            ChallengeRowView(challengeManager: challengeManager, challenge: challenge) {
-                                challengeManager.toggleChallenge(challenge)
-                            }
-                            // --- FIX 2: REMOVE .listRowInsets ---
-                            // Spacing is now handled inside the ChallengeRowView.
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 2, leading: 2, bottom: 5, trailing: 2))
-                        }
-                        .onMove(perform: challengeManager.moveChallenge)
-                    }
-                    .listStyle(.plain)
-                    .scrollDisabled(true)
-                    .frame(height: CGFloat(challengeManager.challengeItems.count) * 110)
-                }
-            }
-            
+        // REMOVE THE Group AND THE if/else WRAPPER
         
+        List {
+            // This ForEach is now the List's main content.
+            // If challengeItems is empty, the ForEach simply does nothing.
+            ForEach(challengeManager.challengeItems.filter { $0.isSubChallange == false})
+            { challenge in
+                if challenge.isAggregator {
+                    
+                    // This is the correct structure
+                    DisclosureGroup {
+                      
+                        
+                        ForEach(challengeManager.challengeItems.filter { $0.associatedAggregatorID == challenge.id }) { subChallenge in
+                            
+                            // This displays one row for each sub-challenge
+                            ChallengeRowView(challengeManager: challengeManager, challenge: subChallenge) {
+                                challengeManager.toggleChallenge(subChallenge)
+                            }//listmodifiers after this
+                            .listRowSeparator(.hidden)
+                            
+                            // You might want to add some indentation
+                            .padding(.leading, 20)
+                            .padding(.top, -20)
+                        }
+                        
+                    } label: {
+                        
+                        ChallengeRowView(challengeManager: challengeManager, challenge: challenge) {
+                            challengeManager.toggleChallenge(challenge)
+                        }
+                        .contextMenu {
+                            Button(action: {
+                                           //hier noch gleiches menu adden
+                                        }) {
+                                            // This is the button's label in the menu
+                                            Text("Add Sub-Challenge")
+                                            Image(systemName: "plus.circle")
+                                        }
+                        }
+                        .listRowSeparator(.hidden)
+                        // Add your list modifiers for the main aggregator row here
+                        // (e.g., .listRowSeparator(.hidden), .listRowInsets(...))
+                    }
+                    
+                    
+                }else{
+                    
+                    
+                    
+                    ChallengeRowView(challengeManager: challengeManager, challenge: challenge) {
+                        challengeManager.toggleChallenge(challenge)
+                    }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 2, bottom: 5, trailing: 2))
+                    .contextMenu {
+                        Button {
+                            self.challengeToAdd = challenge
+                            self.showAddToRoutineView = true
+                        } label: {
+                            Label("Add to Routine", systemImage: "plus")
+                        }
+                        Button(role: .destructive) {
+                            challengeManager.deleteChallenge(challenge)
+                            } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                    .sheet(isPresented: $showAddToRoutineView){
+                        // --- (FIXED THIS LINE TOO, see below) ---
+                        AddToRoutineView(
+                            challengeManager: challengeManager,
+                            isPresented: $showAddToRoutineView, // Pass as a Bindingf
+                            challengeToAdd: $challengeToAdd // Pass as a Binding
+                        )
+                        .presentationDetents([.medium, .large])
+                    }
+                }}
+            .onMove(perform: challengeManager.moveChallenge)
+        }
+        .listStyle(.plain)
+        .scrollDisabled(true)
+        .frame(height: CGFloat(challengeManager.challengeItems.count) * 110)
+        
+        .overlay {
+            // This view is shown *on top* of the List if it's empty
+            if challengeManager.challengeItems.isEmpty {
+                VStack {
+                    Image(systemName: "star.circle")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                        .padding(.top, 130)
+                    Text("No challenges yet! Add in Goals")
+                        .foregroundColor(.secondary)
+                        .padding()
+                }
+               
+                .frame(height: 400)
+            }
+        }
         .onReceive(timer) { _ in
             challengeManager.updateAndCheckTimers()
         }
@@ -144,5 +217,3 @@ struct EmbeddedChallengesView: View {
         }
     }
 }
-
-

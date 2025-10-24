@@ -13,13 +13,14 @@ struct ChallengeItem: Identifiable, Codable {
     var streak : Int = 0
     var streakGoal : Int = 100
     var isDailyChallenge: Bool = true //unused
-    var associatedGoal: GoalItem //unused
+    var associatedGoal: GoalItem?
     var associatedSubGoal: SubgoalItem? //unused
     
     //for Agregator Challanges
     var isAggregator: Bool = false
     var isSubChallange: Bool = false
     var associatedAggregatorID: UUID?
+    var isRoutine: Bool = false
     
     //for timer
        var hasTimer: Bool = false

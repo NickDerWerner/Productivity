@@ -61,7 +61,7 @@ class ChallengeManager: ObservableObject {
     }
     
     // STEP 5: Add a new todo
-    func addChallenge(_ title: String, associatedGoal: GoalItem, isAggregator: Bool, associatedAggregatorID: UUID? = nil) {
+    func addChallenge(_ title: String, associatedGoal: GoalItem?, isAggregator: Bool, associatedAggregatorID: UUID? = nil, isRoutine: Bool? = nil) -> ChallengeItem {
         
         let isSubChallenge: Bool = associatedAggregatorID != nil
         let newChallenge =
@@ -70,10 +70,13 @@ class ChallengeManager: ObservableObject {
                       associatedGoal: associatedGoal,
                       isAggregator: isAggregator,
                       isSubChallange: isSubChallenge,
-                      associatedAggregatorID: associatedAggregatorID
+                      associatedAggregatorID: associatedAggregatorID,
+                      isRoutine: isRoutine ?? false,
+                     // hasTimer: false
         )
         challengeItems.append(newChallenge)  // Add to list
         saveChallenge()  // Save immediately
+        return newChallenge
     }
     
     func addChallengeWithTimer(_ title: String, associatedGoal: GoalItem, isAggregator: Bool, associatedAggregatorID: UUID? = nil, durationInMinutes: Int) {
@@ -129,6 +132,20 @@ class ChallengeManager: ObservableObject {
             saveChallenge()  // Save immediately
         }
     }
+    func createNewRoutineAndMoveChallenge(challengeItem: ChallengeItem, routineName: String){
+        let aggregatorInstance = addChallenge(routineName,associatedGoal: nil, isAggregator: true, isRoutine: true)
+        addChallengeToRoutine(challengeItem: challengeItem, aggregatorInstance:  aggregatorInstance)
+        saveChallenge()
+    }
+    
+    func addChallengeToRoutine(challengeItem: ChallengeItem, aggregatorInstance: ChallengeItem){
+        if let challengeIndex = challengeItems.firstIndex(where: {challengeItem.id == $0.id}){
+            challengeItems[challengeIndex].associatedAggregatorID = aggregatorInstance.id
+            challengeItems[challengeIndex].isSubChallange = true
+           //   saveChallenge() already safes it
+        }
+    }
+    
     
     func resetDailyChallenge(){
         print("running daily reset")
