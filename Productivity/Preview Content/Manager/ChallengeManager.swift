@@ -61,7 +61,7 @@ class ChallengeManager: ObservableObject {
     }
     
     // STEP 5: Add a new todo
-    func addChallenge(_ title: String, associatedGoal: GoalItem?, isAggregator: Bool, associatedAggregatorID: UUID? = nil, isRoutine: Bool? = nil) -> ChallengeItem {
+    func addChallenge(_ title: String, associatedGoal: GoalItem?, isAggregator: Bool, associatedAggregatorID: UUID? = nil, isRoutine: Bool? = nil,  activeDays: Set<DayOfWeek> = []) -> ChallengeItem {
         
         let isSubChallenge: Bool = associatedAggregatorID != nil
         let newChallenge =
@@ -72,6 +72,7 @@ class ChallengeManager: ObservableObject {
                       isSubChallange: isSubChallenge,
                       associatedAggregatorID: associatedAggregatorID,
                       isRoutine: isRoutine ?? false,
+                      activeDays: activeDays,
                      // hasTimer: false
         )
         challengeItems.append(newChallenge)  // Add to list
@@ -79,7 +80,7 @@ class ChallengeManager: ObservableObject {
         return newChallenge
     }
     
-    func addChallengeWithTimer(_ title: String, associatedGoal: GoalItem, isAggregator: Bool, associatedAggregatorID: UUID? = nil, durationInMinutes: Int) {
+    func addChallengeWithTimer(_ title: String, associatedGoal: GoalItem?, isAggregator: Bool, associatedAggregatorID: UUID? = nil, durationInMinutes: Int, activeDays: Set<DayOfWeek> = []) {
    
         let isSubChallenge: Bool = associatedAggregatorID != nil
         let newChallenge = ChallengeItem(
@@ -90,7 +91,8 @@ class ChallengeManager: ObservableObject {
             associatedAggregatorID: associatedAggregatorID,
             hasTimer: true,
             timerDuration: durationInMinutes * 60, // Dauer in Sekunden umrechnen
-            timeRemaining: durationInMinutes * 60 // Verbleibende Zeit auf die Gesamtdauer setzen
+            timeRemaining: durationInMinutes * 60, // Verbleibende Zeit auf die Gesamtdauer setzen
+            activeDays: activeDays
         )
         
         // Füge die Challenge zur Liste hinzu
@@ -135,14 +137,22 @@ class ChallengeManager: ObservableObject {
     func createNewRoutineAndMoveChallenge(challengeItem: ChallengeItem, routineName: String){
         let aggregatorInstance = addChallenge(routineName,associatedGoal: nil, isAggregator: true, isRoutine: true)
         addChallengeToRoutine(challengeItem: challengeItem, aggregatorInstance:  aggregatorInstance)
-        saveChallenge()
+        //   saveChallenge() already safes it in addChallengeToRoutine
     }
     
     func addChallengeToRoutine(challengeItem: ChallengeItem, aggregatorInstance: ChallengeItem){
         if let challengeIndex = challengeItems.firstIndex(where: {challengeItem.id == $0.id}){
             challengeItems[challengeIndex].associatedAggregatorID = aggregatorInstance.id
             challengeItems[challengeIndex].isSubChallange = true
-           //   saveChallenge() already safes it
+            saveChallenge()
+           
+        }
+    }
+    func removeChallengeFromAggregator(challengeItem: ChallengeItem){
+        if let challengeIndex = challengeItems.firstIndex(where: {challengeItem.id == $0.id}){
+            challengeItems[challengeIndex].associatedAggregatorID = nil
+            challengeItems[challengeIndex].isSubChallange = false
+            saveChallenge()
         }
     }
     
@@ -150,6 +160,8 @@ class ChallengeManager: ObservableObject {
     func resetDailyChallenge(){
         print("running daily reset")
         var hasChanges = false
+        
+        
         for index in challengeItems.indices{
             if challengeItems[index].isDailyChallenge{
                 if challengeItems[index].isCompleted{
@@ -160,7 +172,30 @@ class ChallengeManager: ObservableObject {
                         challengeItems[index].isTimerRunning = false
                     }
                 }else{
-                    challengeItems[index].streak = 0
+                    
+                    let wasActiveYesterday: Bool = {
+                        // If the activeDays set is empty, it's active every day (including yesterday).
+                        if challengeItems[index].activeDays.isEmpty {
+                            return true
+                        }
+                        
+                        // 1. Get yesterday's date
+                        guard let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) else {
+                            return false }
+                        // 2. Get the weekday Int for *yesterday* (Sunday=1, Monday=2...)
+                        let yesterdayWeekdayInt = Calendar.current.component(.weekday, from: yesterday)
+                        // 3. Try to convert that Int into our DayOfWeek enum
+                        guard let yesterdayDay = DayOfWeek(rawValue: yesterdayWeekdayInt) else {
+                            return false // Should never happen if your enum is 1-7
+                        }
+                        // 4. Check if the challenge's set contains yesterday's day
+                        return challengeItems[index].activeDays.contains(yesterdayDay)
+                    }() // The () at the end immediately runs this closure
+                    
+                    if wasActiveYesterday{
+                        challengeItems[index].streak = 0
+                    }
+                    
                 }
                 hasChanges = true
             }
@@ -172,12 +207,42 @@ class ChallengeManager: ObservableObject {
     }
     
     func moveChallenge(from source: IndexSet, to destination: Int) {
-            // This command rearranges the items in your original array.
-            challengeItems.move(fromOffsets: source, toOffset: destination)
+        
+        // 1. Get the list of root items that the ForEach is *actually* displaying
+        let rootItems = challengeItems.filter { $0.isSubChallange == false }
+        
+        // 2. Create a mutable copy of just those root items
+        var reorderedRootItems = rootItems
+        
+        // 3. Perform the move on this temporary, root-only array
+        reorderedRootItems.move(fromOffsets: source, toOffset: destination)
+        
+        // 4. Get all the sub-challenges, grouped by their parent's ID
+        let subChallengeGroups = Dictionary(
+            grouping: challengeItems.filter { $0.isSubChallange == true },
+            by: { $0.associatedAggregatorID! }
+        )
+        
+        // 5. Create a new, empty array to build our new list
+        var newChallengeItems: [ChallengeItem] = []
+        
+        // 6. Walk through the newly ordered root items
+        for rootItem in reorderedRootItems {
+            // Add the root item itself
+            newChallengeItems.append(rootItem)
             
-            // IMPORTANT: Save the new order immediately.
-            saveChallenge()
+            // If this root item is an aggregator, find and add its children
+            if rootItem.isAggregator, let subChallenges = subChallengeGroups[rootItem.id] {
+                newChallengeItems.append(contentsOf: subChallenges)
+            }
         }
+        
+        // 7. Replace the old, full array with our new, correctly-ordered array
+        challengeItems = newChallengeItems
+        
+        // 8. Save the new order
+        saveChallenge()
+    }
     
     func checkForDailyReset(){
         let lastResetKey = "lastResetKey"
@@ -202,6 +267,15 @@ class ChallengeManager: ObservableObject {
     
     
     func deleteChallenge(_ challengeToDelete: ChallengeItem) {
+        if challengeToDelete.isAggregator{
+            for index in challengeItems.indices{
+                if challengeItems[index].associatedAggregatorID == challengeToDelete.id{
+                    
+                        challengeItems[index].associatedAggregatorID = nil
+                    challengeItems[index].isSubChallange = false
+                    }
+                }
+            }
             challengeItems.removeAll { $0.id == challengeToDelete.id }
             saveChallenge() // Speichere die Änderung
         }

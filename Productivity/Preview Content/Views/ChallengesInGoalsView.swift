@@ -53,7 +53,7 @@ struct ChallengesInGoalsView: View {
             } else {
                 // --- ERSETZE DEN ALTEN VSTACK DURCH DIESE LIST ---
                 List {
-                    ForEach(challengeManager.challengeItems.filter { $0.associatedGoal == goal && $0.isSubChallange == false}) { challenge in
+                    ForEach(challengeManager.challengeItems.filter { $0.associatedGoal == goal}) { challenge in
                         
                         if challenge.isAggregator {
                             
@@ -168,17 +168,55 @@ struct ChallengeRowInGoalView: View {
     var body: some View {
         // This HStack contains your original row content
         HStack {
-            if challenge.hasTimer {
-                timerButton
-            } else {
-                toggleButton
+            //check if challegne is active today
+            //check if challegne is active today
+                        let isActiveToday: Bool = {
+                            // If the activeDays set is empty, we'll assume it's active every day.
+                            if challenge.activeDays.isEmpty {
+                                return true
+                            }
+                            
+                            // Get the current weekday Int (Sunday=1, Monday=2...)
+                            // This matches your DayOfWeek enum's raw values.
+                            let currentWeekdayInt = Calendar.current.component(.weekday, from: Date())
+                            
+                            // Try to convert that Int into our DayOfWeek enum
+                            guard let currentDay = DayOfWeek(rawValue: currentWeekdayInt) else {
+                                return false // Should never happen, but good to be safe
+                            }
+                            
+                            // Check if the challenge's set contains the current day
+                            return challenge.activeDays.contains(currentDay)
+                        }() // The () at the end immediately runs this closure
+            
+            if isActiveToday{
+                if challenge.hasTimer {
+                    timerButton
+                } else {
+                    toggleButton
+                }}
+            else{
+                Image(systemName: "x.circle")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 30))
             }
             
+            VStack(alignment: .leading) {
                 Text(challenge.title)
                     .font(.headline)
-                
-            if challenge.isAggregator {
-                Text("🦄")
+                    .foregroundColor(isActiveToday ? .black : .gray)
+                    
+                HStack{
+                    Text(challenge.associatedGoal?.title ?? "Routine")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        
+                   
+                    
+                    Text("  🗓️: \(challenge.activeDaysSummary)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()
